@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends Tribute - Windows XP Style</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Tahoma', sans-serif;
+            overflow: hidden;
+        }
+        
+        /* Windows XP Background */
+        .xp-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #245edc 0%, #3a7be0 40%, #3a7be0 100%);
+            z-index: -2;
+        }
+        
+        .xp-background::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(to bottom, #6ca55a 0%, #4e8040 100%);
+        }
+        
+        /* Scene containers */
+        .scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease;
+        }
+        
+        .scene.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        /* Mario Scene */
+        .mario-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .mario {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background-color: #e52521;
+            border: 2px solid #000;
+            transform: translateX(-1000px);
+            animation: marioWalkIn 3s forwards 0.5s, marioJump 0.5s 3.5s;
+        }
+        
+        /* Mario pixel art details */
+        .mario::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 5px;
+            width: 50px;
+            height: 40px;
+            background-color: #fbd671;
+            border: 2px solid #000;
+        }
+        
+        .mario::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 10px;
+            width: 40px;
+            height: 30px;
+            background-color: #e52521;
+            border: 2px solid #000;
+        }
+        
+        .hat {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 50px;
+            height: 10px;
+            background-color: #e52521;
+            border: 2px solid #000;
+        }
+        
+        .sign {
+            position: absolute;
+            width: 200px;
+            height: 120px;
+            background-color: #fff;
+            border: 4px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            transform: translateX(1000px);
+            animation: signSlideIn 1s forwards 4s;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .sign:hover {
+            background-color: #ffffcc;
+        }
+        
+        /* Doors Scene */
+        .doors-container {
+            width: 90%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .door {
+            height: 300px;
+            background-color: #8b4513;
+            border: 5px solid #5d2906;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .door:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        
+        .door-knob {
+            width: 20px;
+            height: 20px;
+            background-color: #ffd700;
+            border-radius: 50%;
+            position: absolute;
+            right: 20px;
+            top: 50%;
+        }
+        
+        .friend-name {
+            color: rgb(222, 19, 19);
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 10px;
+        }
+        
+        /* Modal for friend bio */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal-content {
+            width: 80%;
+            max-width: 600px;
+            background-color: #1a1a1a;
+            border: 5px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            transform: scale(0.8);
+            transition: transform 0.3s;
+        }
+        
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            color: #fff;
+            cursor: pointer;
+        }
+        
+        .color-picker {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .color-option.selected {
+            border-color: white;
+        }
+        
+       
+        @keyframes marioWalkIn {
+            0% {
+                transform: translateX(-1000px);
+            }
+            100% {
+                transform: translateX(-200px);
+            }
+        }
+        
+        @keyframes marioJump {
+            0%, 100% {
+                transform: translateX(-200px) translateY(0);
+            }
+            50% {
+                transform: translateX(-200px) translateY(-30px);
+            }
+        }
+        
+        @keyframes signSlideIn {
+            0% {
+                transform: translateX(1000px);
+            }
+            100% {
+                transform: translateX(100px);
+            }
+        }
+    </style>
+</head>
+<body>
+   
+    <div class="xp-background"></div>
+    
+   
+    <div class="scene" id="mario-scene">
+        <div class="mario-container">
+            <div class="mario">
+                <div class="hat"></div>
+            </div>
+            <div class="sign" id="click-sign">Click Me!</div>
+        </div>
+    </div>
+    
+   
+    <div class="scene hidden" id="doors-scene">
+        <div class="doors-container">
+            
+        </div>
+    </div>
+    
+    
+    <div class="modal" id="friend-modal">
+        <div class="modal-content" id="modal-content">
+            <span class="close-modal" id="close-modal">&times;</span>
+            <h2 id="modal-name" style="color: white;">Friend Name</h2>
+            
+            <div class="color-picker">
+                <div class="color-option selected" style="background-color: #1a1a1a;" data-color="#1a1a1a"></div>
+                <div class="color-option" style="background-color: #2d1b69;" data-color="#2d1b69"></div>
+                <div class="color-option" style="background-color: #5d2906;" data-color="#5d2906"></div>
+                <div class="color-option" style="background-color: #0a2f35;" data-color="#0a2f35"></div>
+                <div class="color-option" style="background-color: #3d1c02;" data-color="#3d1c02"></div>
+            </div>
+            
+            <textarea id="modal-bio" style="width: 100%; height: 200px; background-color: #333; color: white; padding: 10px; border: none; resize: none;" placeholder="Write something nice about your friend here..."></textarea>
+            <button id="save-bio" style="margin-top: 15px; padding: 8px 15px; background-color: #0066cc; color: white; border: none; cursor: pointer;">Save</button>
+        </div>
+    </div>
+
+    <script>
+      
+        const friends = [
+            { id: 1, name: "Alex", bio: "Alex is an amazing friend who always knows how to make people laugh." },
+            { id: 2, name: "Jamie", bio: "Jamie is the most reliable person I know, always there when you need them." },
+            { id: 3, name: "Taylor", bio: "Taylor has the most creative mind and is always coming up with new ideas." },
+            { id: 4, name: "Morgan", bio: "Morgan is incredibly kind and thoughtful, always putting others first." },
+            { id: 5, name: "Casey", bio: "Casey is the adventurer of the group, always planning the next exciting trip." },
+            { id: 6, name: "Jordan", bio: "Jordan is the wise one, always giving the best advice in any situation." },
+            { id: 7, name: "Riley", bio: "Riley is the life of the party, bringing energy and fun wherever they go." }
+        ];
+        
+        
+        const marioScene = document.getElementById('mario-scene');
+        const doorsScene = document.getElementById('doors-scene');
+        const clickSign = document.getElementById('click-sign');
+        const doorsContainer = document.querySelector('.doors-container');
+        const friendModal = document.getElementById('friend-modal');
+        const closeModal = document.getElementById('close-modal');
+        const modalName = document.getElementById('modal-name');
+        const modalBio = document.getElementById('modal-bio');
+        const saveBio = document.getElementById('save-bio');
+        const modalContent = document.getElementById('modal-content');
+        const colorOptions = document.querySelectorAll('.color-option');
+        
+        let currentFriendId = null;
+        
+        
+        function initializeDoors() {
+            doorsContainer.innerHTML = '';
+            
+            friends.forEach(friend => {
+                const door = document.createElement('div');
+                door.className = 'door';
+                door.dataset.id = friend.id;
+                
+                const name = document.createElement('div');
+                name.className = 'friend-name';
+                name.textContent = friend.name;
+                
+                const knob = document.createElement('div');
+                knob.className = 'door-knob';
+                
+                door.appendChild(name);
+                door.appendChild(knob);
+                
+                door.addEventListener('click', () => openFriendModal(friend.id));
+                
+                doorsContainer.appendChild(door);
+            });
+        }
+        
+        
+        function openFriendModal(friendId) {
+            currentFriendId = friendId;
+            const friend = friends.find(f => f.id === friendId);
+            
+            modalName.textContent = friend.name;
+            modalBio.value = friend.bio;
+            
+          
+            colorOptions.forEach(option => option.classList.remove('selected'));
+            colorOptions[0].classList.add('selected');
+            modalContent.style.backgroundColor = '#1a1a1a';
+            
+            friendModal.classList.add('active');
+        }
+        
+    
+        function closeFriendModal() {
+            friendModal.classList.remove('active');
+        }
+        
+
+        function saveFriendBio() {
+            if (currentFriendId) {
+                const friend = friends.find(f => f.id === currentFriendId);
+                friend.bio = modalBio.value;
+                closeFriendModal();
+            }
+        }
+        
+        clickSign.addEventListener('click', () => {
+            marioScene.classList.add('hidden');
+            doorsScene.classList.remove('hidden');
+        });
+        
+        closeModal.addEventListener('click', closeFriendModal);
+        saveBio.addEventListener('click', saveFriendBio);
+
+        colorOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                colorOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                modalContent.style.backgroundColor = option.dataset.color;
+            });
+        });
+        
+        friendModal.addEventListener('click', (e) => {
+            if (e.target === friendModal) {
+                closeFriendModal();
+            }
+        });
+        
+        initializeDoors();
+    </script>
+</body>
+</html>
